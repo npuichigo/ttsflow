@@ -32,7 +32,7 @@ getting started, Github has a
 
 If you want to contribute but you're not sure where to start, take a look at the
 [issues with the "contributions welcome"
-label](https://github.com/npuichigo/voicenet/issues).
+label](https://github.com/npuichigo/ttsflow/issues).
 These are issues that we believe are particularly well suited for outside
 contributions, often because we probably won't get to them right now. If you
 decide to start on an issue, leave a comment so that other people know that
