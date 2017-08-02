@@ -5,6 +5,8 @@ node_modules
 /.tf_configure.bazelrc
 /bazel-*
 /bazel_pip
+/tools/python_bin_path.sh
+/tools/git/gen
 /pip_test
 /_python_build
 *.pyc
