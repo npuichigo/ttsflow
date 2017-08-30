@@ -56,9 +56,11 @@ void AddPhoneDurationInfo(const Tensor& phone_features,
     int duration = static_cast<int>(phone_durations_mat(i, 2) + 0.5);
     if (duration <= 0)
       duration = 1;
-    Eigen::array<int, 2> offsets = {offset, 0}, extents = {duration, phone_dim};
+    Eigen::array<int, 2> offsets_lhs = {offset, 0}, extents_lhs = {duration, phone_dim};
+    Eigen::array<int, 2> offsets_rhs = {i, 0}, extents_rhs{1, phone_dim};
     Eigen::array<int, 2> bcast({duration, 1});
-    frame_features_mat.slice(offsets, extents) = phone_features_mat.chip(i, 0).broadcast(bcast);
+    auto phone_feature = phone_features_mat.slice(offsets_rhs, extents_rhs);
+    frame_features_mat.slice(offsets_lhs, extents_lhs) = phone_feature.broadcast(bcast);
 
     // Add duration information to frame_features
     for (int j = 0; j < duration; ++j) {
@@ -103,9 +105,11 @@ void AddStateDurationInfo(const Tensor& phone_features,
   // Fill frame_features without duration information
   for (int i = 0; i < num_phones; ++i) {
     int phone_duration = phone_durations[i];
-    Eigen::array<int, 2> offsets = {offset, 0}, extents{phone_duration, phone_dim};
+    Eigen::array<int, 2> offsets_lhs = {offset, 0}, extents_lhs{phone_duration, phone_dim};
+    Eigen::array<int, 2> offsets_rhs = {i, 0}, extents_rhs{1, phone_dim};
     Eigen::array<int, 2> bcast({phone_duration, 1});
-    frame_features_mat.slice(offsets, extents) = phone_features_mat.chip(i, 0).broadcast(bcast);
+    auto phone_feature = phone_features_mat.slice(offsets_rhs, extents_rhs);
+    frame_features_mat.slice(offsets_lhs, extents_lhs) = phone_feature.broadcast(bcast);
 
     int accumulated_state_duration = 0;
     // Add duration information to frame_features
