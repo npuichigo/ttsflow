@@ -19,7 +19,7 @@ filegroup(
 )
 
 cc_binary(
-    name = "ttsflow_test",
+    name = "ttsflow_main",
     srcs = [
         "main.cc",
     ],
