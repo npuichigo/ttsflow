@@ -79,6 +79,7 @@ NONEMPTY_WARN_REPORT := $(BUILD_DIR)/$(WARNS_EXT)
 ##############################
 # Derive include and lib directories
 ##############################
+
 INCLUDE_DIRS += ./ ./third_party/eigen3 \
 				./third_party/World/tools \
 				./third_party/World/src \
@@ -156,7 +157,7 @@ LIBRARY_DIRS += $(LIB_BUILD_DIR) \
 				./third_party/tensorflow/bazel-bin/tensorflow \
 				./third_party/World/build
 
-# Automatic dependency generation (nvcc is handled separately)
+# Automatic dependency generation
 CXXFLAGS += -MMD -MP
 
 # Complete build flags.
@@ -172,6 +173,7 @@ EVERYTHING_TARGETS := all test warn
 ##############################
 # Define build targets
 ##############################
+
 .PHONY: all lib test clean examples warn everything
 
 all: lib examples
