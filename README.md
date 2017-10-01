@@ -33,7 +33,7 @@ To build libtensorflow_cc.so for c++, just run:
 ```shell
 cd ./third_party/tensorflow
 ./configure
-bazel build --config=opt //tensorflow:libtensorflow_cc.so
+bazel build -c opt --config=opt //tensorflow:libtensorflow_cc.so
 ```
 
 Another prerequisite is protobuf, which should be installed in ttsflow-gnu-make/third_party/protobuf:
