@@ -81,11 +81,11 @@ NONEMPTY_WARN_REPORT := $(BUILD_DIR)/$(WARNS_EXT)
 ##############################
 
 INCLUDE_DIRS += ./ ./third_party/eigen3 \
-				./third_party/World/tools \
-				./third_party/World/src \
-				./third_party/protobuf/include \
-				./third_party/tensorflow \
-				./third_party/tensorflow/bazel-genfiles
+		./third_party/World/tools \
+		./third_party/World/src \
+		./third_party/protobuf/include \
+		./third_party/tensorflow \
+		./third_party/tensorflow/bazel-genfiles
 
 LIBRARIES += protobuf tensorflow_cc world
 
@@ -153,9 +153,9 @@ else
 endif
 
 LIBRARY_DIRS += $(LIB_BUILD_DIR) \
-				./third_party/protobuf/lib \
-				./third_party/tensorflow/bazel-bin/tensorflow \
-				./third_party/World/build
+		./third_party/protobuf/lib \
+		./third_party/tensorflow/bazel-bin/tensorflow \
+		./third_party/World/build
 
 # Automatic dependency generation
 CXXFLAGS += -MMD -MP
