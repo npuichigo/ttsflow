@@ -8,14 +8,34 @@ exports_files(["LICENSE"])
 # Protobuf Runtime Library
 ################################################################################
 
-COPTS = [
-    "-DHAVE_PTHREAD",
-    "-Wall",
-    "-Wwrite-strings",
-    "-Woverloaded-virtual",
-    "-Wno-sign-compare",
-    "-Wno-unused-function",
+WIN_COPTS = [
+    "/DHAVE_PTHREAD",
+    "/wd4018", # -Wno-sign-compare
+    "/wd4514", # -Wno-unused-function
 ]
+
+COPTS = select({
+    ":windows" : WIN_COPTS,
+    ":windows_msvc" : WIN_COPTS,
+    "//conditions:default": [
+        "-DHAVE_PTHREAD",
+        "-Wall",
+        "-Wwrite-strings",
+        "-Woverloaded-virtual",
+        "-Wno-sign-compare",
+        "-Wno-unused-function",
+    ],
+})
+
+config_setting(
+    name = "windows",
+    values = { "cpu": "x64_windows" },
+)
+
+config_setting(
+    name = "windows_msvc",
+    values = { "cpu": "x64_windows_msvc" },
+)
 
 config_setting(
     name = "android",
@@ -60,7 +80,7 @@ config_setting(
     },
 )
 
-IOS_ARM_COPTS = COPTS + [
+IOS_ARM_COPTS = [
     "-DOS_IOS",
     "-miphoneos-version-min=7.0",
     "-arch armv7",
@@ -103,8 +123,8 @@ cc_library(
         ":ios_armv7": IOS_ARM_COPTS,
         ":ios_armv7s": IOS_ARM_COPTS,
         ":ios_arm64": IOS_ARM_COPTS,
-        "//conditions:default": COPTS,
-    }),
+        "//conditions:default": [],
+    }) + COPTS,
     includes = ["src/"],
     linkopts = LINK_OPTS,
     visibility = ["//visibility:public"],
@@ -145,6 +165,7 @@ cc_library(
         "src/google/protobuf/timestamp.pb.cc",
         "src/google/protobuf/type.pb.cc",
         "src/google/protobuf/unknown_field_set.cc",
+        "src/google/protobuf/util/delimited_message_util.cc",
         "src/google/protobuf/util/field_comparator.cc",
         "src/google/protobuf/util/field_mask_util.cc",
         "src/google/protobuf/util/internal/datapiece.cc",
@@ -173,8 +194,8 @@ cc_library(
         ":ios_armv7": IOS_ARM_COPTS,
         ":ios_armv7s": IOS_ARM_COPTS,
         ":ios_arm64": IOS_ARM_COPTS,
-        "//conditions:default": COPTS,
-    }),
+        "//conditions:default": [],
+    }) + COPTS,
     includes = ["src/"],
     linkopts = LINK_OPTS,
     visibility = ["//visibility:public"],
@@ -205,6 +226,7 @@ RELATIVE_WELL_KNOWN_PROTOS = [
     "google/protobuf/any.proto",
     "google/protobuf/api.proto",
     "google/protobuf/compiler/plugin.proto",
+    "google/protobuf/compiler/profile.proto",
     "google/protobuf/descriptor.proto",
     "google/protobuf/duration.proto",
     "google/protobuf/empty.proto",
@@ -349,6 +371,7 @@ cc_library(
         "src/google/protobuf/compiler/php/php_generator.cc",
         "src/google/protobuf/compiler/plugin.cc",
         "src/google/protobuf/compiler/plugin.pb.cc",
+        "src/google/protobuf/compiler/profile.pb.cc",
         "src/google/protobuf/compiler/python/python_generator.cc",
         "src/google/protobuf/compiler/ruby/ruby_generator.cc",
         "src/google/protobuf/compiler/subprocess.cc",
@@ -400,6 +423,9 @@ RELATIVE_TEST_PROTOS = [
     "google/protobuf/unittest_enormous_descriptor.proto",
     "google/protobuf/unittest_import.proto",
     "google/protobuf/unittest_import_public.proto",
+    "google/protobuf/unittest_lazy_dependencies.proto",
+    "google/protobuf/unittest_lazy_dependencies_custom_option.proto",
+    "google/protobuf/unittest_lazy_dependencies_enum.proto",
     "google/protobuf/unittest_lite_imports_nonlite.proto",
     "google/protobuf/unittest_mset.proto",
     "google/protobuf/unittest_mset_wire_format.proto",
@@ -476,6 +502,7 @@ cc_test(
         "src/google/protobuf/compiler/cpp/cpp_plugin_unittest.cc",
         "src/google/protobuf/compiler/cpp/cpp_unittest.cc",
         "src/google/protobuf/compiler/cpp/metadata_test.cc",
+        "src/google/protobuf/compiler/csharp/csharp_bootstrap_unittest.cc",
         "src/google/protobuf/compiler/csharp/csharp_generator_unittest.cc",
         "src/google/protobuf/compiler/importer_unittest.cc",
         "src/google/protobuf/compiler/java/java_doc_comment_unittest.cc",
@@ -521,6 +548,7 @@ cc_test(
         "src/google/protobuf/stubs/type_traits_unittest.cc",
         "src/google/protobuf/text_format_unittest.cc",
         "src/google/protobuf/unknown_field_set_unittest.cc",
+        "src/google/protobuf/util/delimited_message_util_test.cc",
         "src/google/protobuf/util/field_comparator_test.cc",
         "src/google/protobuf/util/field_mask_util_test.cc",
         "src/google/protobuf/util/internal/default_value_objectwriter_test.cc",
@@ -541,6 +569,10 @@ cc_test(
         ":test_plugin",
     ] + glob([
         "src/google/protobuf/**/*",
+        # Files for csharp_bootstrap_unittest.cc.
+        "conformance/**/*",
+        "csharp/src/**/*",
+        "examples/**/*",
     ]),
     includes = [
         "src/",
@@ -568,6 +600,7 @@ java_library(
     ]) + [
         ":gen_well_known_protos_java",
     ],
+    javacopts = ["-source 6"],
     visibility = ["//visibility:public"],
 )
 
@@ -792,5 +825,86 @@ proto_lang_toolchain(
     name = "java_toolchain",
     command_line = "--java_out=$(OUT)",
     runtime = ":protobuf_java",
+    visibility = ["//visibility:public"],
+)
+
+OBJC_HDRS = [
+    "objectivec/GPBArray.h",
+    "objectivec/GPBBootstrap.h",
+    "objectivec/GPBCodedInputStream.h",
+    "objectivec/GPBCodedOutputStream.h",
+    "objectivec/GPBDescriptor.h",
+    "objectivec/GPBDictionary.h",
+    "objectivec/GPBExtensionInternals.h",
+    "objectivec/GPBExtensionRegistry.h",
+    "objectivec/GPBMessage.h",
+    "objectivec/GPBProtocolBuffers.h",
+    "objectivec/GPBProtocolBuffers_RuntimeSupport.h",
+    "objectivec/GPBRootObject.h",
+    "objectivec/GPBRuntimeTypes.h",
+    "objectivec/GPBUnknownField.h",
+    "objectivec/GPBUnknownFieldSet.h",
+    "objectivec/GPBUtilities.h",
+    "objectivec/GPBWellKnownTypes.h",
+    "objectivec/GPBWireFormat.h",
+    "objectivec/google/protobuf/Any.pbobjc.h",
+    "objectivec/google/protobuf/Api.pbobjc.h",
+    "objectivec/google/protobuf/Duration.pbobjc.h",
+    "objectivec/google/protobuf/Empty.pbobjc.h",
+    "objectivec/google/protobuf/FieldMask.pbobjc.h",
+    "objectivec/google/protobuf/SourceContext.pbobjc.h",
+    "objectivec/google/protobuf/Struct.pbobjc.h",
+    "objectivec/google/protobuf/Timestamp.pbobjc.h",
+    "objectivec/google/protobuf/Type.pbobjc.h",
+    "objectivec/google/protobuf/Wrappers.pbobjc.h",
+]
+
+OBJC_PRIVATE_HDRS = [
+    "objectivec/GPBArray_PackagePrivate.h",
+    "objectivec/GPBCodedInputStream_PackagePrivate.h",
+    "objectivec/GPBCodedOutputStream_PackagePrivate.h",
+    "objectivec/GPBDescriptor_PackagePrivate.h",
+    "objectivec/GPBDictionary_PackagePrivate.h",
+    "objectivec/GPBMessage_PackagePrivate.h",
+    "objectivec/GPBRootObject_PackagePrivate.h",
+    "objectivec/GPBUnknownFieldSet_PackagePrivate.h",
+    "objectivec/GPBUnknownField_PackagePrivate.h",
+    "objectivec/GPBUtilities_PackagePrivate.h",
+]
+
+OBJC_SRCS = [
+    "objectivec/GPBArray.m",
+    "objectivec/GPBCodedInputStream.m",
+    "objectivec/GPBCodedOutputStream.m",
+    "objectivec/GPBDescriptor.m",
+    "objectivec/GPBDictionary.m",
+    "objectivec/GPBExtensionInternals.m",
+    "objectivec/GPBExtensionRegistry.m",
+    "objectivec/GPBMessage.m",
+    "objectivec/GPBRootObject.m",
+    "objectivec/GPBUnknownField.m",
+    "objectivec/GPBUnknownFieldSet.m",
+    "objectivec/GPBUtilities.m",
+    "objectivec/GPBWellKnownTypes.m",
+    "objectivec/GPBWireFormat.m",
+    "objectivec/google/protobuf/Any.pbobjc.m",
+    "objectivec/google/protobuf/Api.pbobjc.m",
+    "objectivec/google/protobuf/Duration.pbobjc.m",
+    "objectivec/google/protobuf/Empty.pbobjc.m",
+    "objectivec/google/protobuf/FieldMask.pbobjc.m",
+    "objectivec/google/protobuf/SourceContext.pbobjc.m",
+    "objectivec/google/protobuf/Struct.pbobjc.m",
+    "objectivec/google/protobuf/Timestamp.pbobjc.m",
+    "objectivec/google/protobuf/Type.pbobjc.m",
+    "objectivec/google/protobuf/Wrappers.pbobjc.m",
+]
+
+objc_library(
+    name = "objectivec",
+    hdrs = OBJC_HDRS + OBJC_PRIVATE_HDRS,
+    includes = [
+        "objectivec",
+    ],
+    non_arc_srcs = OBJC_SRCS,
     visibility = ["//visibility:public"],
 )

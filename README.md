@@ -36,7 +36,7 @@ cd ./third_party/tensorflow
 bazel build -c opt --config=opt //tensorflow:libtensorflow_cc.so
 ```
 
-Another prerequisite is protobuf, which should be installed in ttsflow-gnu-make/third_party/protobuf:
+Another prerequisite is protobuf, which should be installed in ttsflow/third_party/protobuf:
 ```
 cd ./third_party/protobuf
 ./autogen.sh
@@ -45,10 +45,18 @@ make
 make install
 ```
 
-To compile this project, just directly type make, and a symbolic link named main.bin will
+As for vocoder, we use the world vocoder, which is placed in ttsflow/third_party/World:
+```shell
+cd ./third_party/World
+make
+```
+
+To compile this project, just directly type make, and a symbolic link named ttsflow_main will
 be created under the root dir.
 ```shell
 make
+
+# Run ttsflow
 ./ttsflow_main
 ```
 

@@ -1,5 +1,12 @@
 # Description:
 #   Python Client Code of the TensorFlow Debugger (tfdbg).
+#
+# Public target(s):
+#
+# ":debug_py": Public Python methods and classes of tfdbg.
+#   For API documentation, see https://www.tensorflow.org/api_docs/python/tfdbg
+#   For a user interface walkthrough, see https://www.tensorflow.org/programmers_guide/debugger
+# (Omitted internal-only public target)
 
 package(
     default_visibility = ["//tensorflow:internal"],
@@ -24,6 +31,7 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         ":debug_data",
+        ":debug_gradients",
         ":debug_utils",
         ":hooks",
         ":local_cli_wrapper",
@@ -54,6 +62,19 @@ py_library(
 )
 
 py_library(
+    name = "debug_gradients",
+    srcs = ["lib/debug_gradients.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":debug_data",
+        "//tensorflow/python:array_ops",
+        "//tensorflow/python:framework",
+        "//tensorflow/python:platform",
+        "@six_archive//:six",
+    ],
+)
+
+py_library(
     name = "debug_utils",
     srcs = ["lib/debug_utils.py"],
     srcs_version = "PY2AND3",
@@ -63,6 +84,10 @@ py_library(
     name = "source_utils",
     srcs = ["lib/source_utils.py"],
     srcs_version = "PY2AND3",
+    deps = [
+        ":profiling",
+        "//third_party/py/numpy",
+    ],
 )
 
 py_library(
@@ -143,9 +168,14 @@ py_library(
         ":debugger_cli_common",
         ":source_utils",
         ":ui_factory",
-        "//third_party/py/numpy",
         "@six_archive//:six",
     ],
+)
+
+py_library(
+    name = "profiling",
+    srcs = ["lib/profiling.py"],
+    srcs_version = "PY2AND3",
 )
 
 py_library(
@@ -157,8 +187,10 @@ py_library(
         ":command_parser",
         ":debug_data",
         ":debugger_cli_common",
+        ":profiling",
         ":source_utils",
         ":ui_factory",
+        "//tensorflow/python:util",
         "//third_party/py/numpy",
         "@six_archive//:six",
     ],
@@ -255,12 +287,15 @@ py_library(
     deps = [
         ":analyzer_cli",
         ":cli_shared",
+        ":command_parser",
         ":debug_data",
         ":debugger_cli_common",
         ":framework",
         ":profile_analyzer_cli",
         ":stepper_cli",
+        ":tensor_format",
         ":ui_factory",
+        "@six_archive//:six",
     ],
 )
 
@@ -356,9 +391,30 @@ py_test(
     srcs_version = "PY2AND3",
     deps = [
         ":debug_data",
+        "//tensorflow/python:client_testlib",
         "//tensorflow/python:framework_test_lib",
         "//tensorflow/python:platform_test",
         "//third_party/py/numpy",
+    ],
+)
+
+cuda_py_test(
+    name = "debug_gradients_test",
+    size = "small",
+    srcs = [
+        "lib/debug_gradients_test.py",
+    ],
+    additional_deps = [
+        ":debug_data",
+        ":debug_gradients",
+        ":debug_utils",
+        "//tensorflow/python:client",
+        "//tensorflow/python:framework_test_lib",
+        "//tensorflow/python:gradients",
+        "//tensorflow/python:math_ops",
+        "//tensorflow/python:platform_test",
+        "//tensorflow/python:training",
+        "//tensorflow/python:variables",
     ],
 )
 
@@ -442,13 +498,15 @@ py_test(
 )
 
 py_test(
-    name = "curses_widgets_test",
+    name = "profiling_test",
     size = "small",
-    srcs = ["cli/curses_widgets_test.py"],
+    srcs = ["lib/profiling_test.py"],
     srcs_version = "PY2AND3",
     deps = [
-        ":curses_widgets",
+        ":profiling",
         "//tensorflow/python:framework_test_lib",
+        "//tensorflow/python:platform",
+        "//tensorflow/python:platform_test",
     ],
 )
 
@@ -459,6 +517,7 @@ py_test(
         "cli/curses_ui_test.py",
     ],
     srcs_version = "PY2AND3",
+    tags = ["no_windows"],
     deps = [
         ":curses_ui",
         ":debugger_cli_common",
@@ -530,6 +589,22 @@ cuda_py_test(
         "//tensorflow/python:variables",
     ],
     tags = ["notsan"],
+)
+
+cuda_py_test(
+    name = "session_debug_multi_gpu_test",
+    size = "small",
+    srcs = ["lib/session_debug_multi_gpu_test.py"],
+    additional_deps = [
+        ":debug_data",
+        ":debug_utils",
+        "//tensorflow/python:client",
+        "//tensorflow/python:framework_for_generated_wrappers",
+        "//tensorflow/python:framework_test_lib",
+        "//tensorflow/python:math_ops",
+        "//tensorflow/python:platform_test",
+        "//tensorflow/python:variables",
+    ],
 )
 
 py_test(
@@ -712,7 +787,7 @@ py_test(
 
 sh_test(
     name = "examples_test",
-    size = "small",
+    size = "medium",
     srcs = ["examples/examples_test.sh"],
     data = [
         ":debug_errors",

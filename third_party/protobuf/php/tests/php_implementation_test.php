@@ -290,14 +290,14 @@ class ImplementationTest extends TestBase
     public function testDecode()
     {
         $m = new TestMessage();
-        $m->decode(TestUtil::getGoldenTestMessage());
+        $m->mergeFromString(TestUtil::getGoldenTestMessage());
         TestUtil::assertTestMessage($m);
     }
 
     public function testDescriptorDecode()
     {
         $file_desc_set = new FileDescriptorSet();
-        $file_desc_set->decode(hex2bin(
+        $file_desc_set->mergeFromString(hex2bin(
             "0a3b0a12746573745f696e636c7564652e70726f746f120362617222180a" .
             "0b54657374496e636c75646512090a0161180120012805620670726f746f33"));
 
@@ -469,6 +469,11 @@ class ImplementationTest extends TestBase
         $output = new OutputStream(3);
         $output->writeVarint32(16384);
         $this->assertSame(hex2bin('808001'), $output->getData());
+
+        // Negative numbers are padded to be compatible with int64.
+        $output = new OutputStream(10);
+        $output->writeVarint32(-43);
+        $this->assertSame(hex2bin('D5FFFFFFFFFFFFFFFF01'), $output->getData());
     }
 
     public function testWriteVarint64()
@@ -496,13 +501,13 @@ class ImplementationTest extends TestBase
     {
         $m = new TestMessage();
         TestUtil::setTestMessage($m);
-        $this->assertSame(481, $m->byteSize());
+        $this->assertSame(506, $m->byteSize());
     }
 
     public function testPackedByteSize()
     {
         $m = new TestPackedMessage();
         TestUtil::setTestPackedMessage($m);
-        $this->assertSame(156, $m->byteSize());
+        $this->assertSame(166, $m->byteSize());
     }
 }
