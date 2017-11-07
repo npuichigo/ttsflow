@@ -12,7 +12,7 @@ incorporate tensorflow into your project, so we provide makefile too.
 
 ## Installation
 
-### build with bazel
+### Method one: build with bazel
 
 It's quite simple to build this project with bazel, just type:
 ```shell
@@ -24,7 +24,7 @@ bazel build -c opt --config=opt ttsflow/examples/...
 
 The generated executable file is located in bazel-bin/ttsflow/examples/ttsflow_test
 
-### build with gnu's make
+### Method two: build with gnu's make
 
 In order to build with tensorflow, you should first compile tensorflow
 as dynamic-link library.
