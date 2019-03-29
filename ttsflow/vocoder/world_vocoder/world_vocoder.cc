@@ -111,7 +111,7 @@ void WorldVocoder::SptkSopr(const Tensor& lf0,
   auto f0_mat = (*f0)->matrix<float>();
 
   for (int i = 0; i < lf0_mat.dimension(0); ++i) {
-    if (lf0_mat(i, 0) == -1e10) {
+    if (lf0_mat(i, 0) + 1e10 < 1e-6) {
       f0_mat(i, 0) = 0;
     } else {
       f0_mat(i, 0) = exp(lf0_mat(i, 0));
